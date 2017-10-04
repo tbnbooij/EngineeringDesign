@@ -52,3 +52,7 @@ void Wheels::update() {
             break;
     }
 }
+
+void Wheels::setSpeed(int s) {
+    wheelsSpeed = float(s)/100.0;
+}

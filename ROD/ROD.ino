@@ -11,7 +11,10 @@
 #define WHEEL_L2_PIN 5
 #define WHEEL_R1_PIN 6
 #define WHEEL_R2_PIN 7
+
+// Constants
 #define RECEIVE_DELAY 50
+#define COMM_BUFFER_SIZE 64
 
 // State parameter definitions
 #define LEFT_DOOR_IN 1
@@ -20,7 +23,6 @@
 #define RIGHT_DOOR_OUT 4
 #define BOTH_DOORS_IN 5
 #define BOTH_DOORS_OUT 6
-
 
 // Initialization of libraries
 Doors doors(DOOR_L_PIN, DOOR_R_PIN);
@@ -54,6 +56,7 @@ void interpretMsg(const char * match, const unsigned int length, const MatchStat
     char cap [10]; 
     String header;
     int param;
+    int speed;
     
     for (byte i = 0; i < ms.level; i++) {
         ms.GetCapture(cap, i);
@@ -63,6 +66,9 @@ void interpretMsg(const char * match, const unsigned int length, const MatchStat
             break;
           case 1:
             param = String(cap).toInt();
+            break;
+          case 2:
+            speed = String(cap).toInt();
             break;
         }
     }
@@ -109,6 +115,10 @@ void interpretMsg(const char * match, const unsigned int length, const MatchStat
         if(param >= 0 && param <= 2) {
             wheels.wheelsDir = param;
         }
+
+        if(speed >= -100 && speed <= 100) {
+            wheels.setSpeed(speed);
+        }
         break;
     }
 }
@@ -118,5 +128,5 @@ void readMsg(String ser_buf) {
     char buf[COMM_BUFFER_SIZE];
     ser_buf.toCharArray(buf, ser_buf.length() + 1);
     MatchState ms(buf);
-    unsigned long count = ms.GlobalMatch ("#(%a+)@(%d+)!", interpretMsg);
+    unsigned long count = ms.GlobalMatch ("#(%a+)@(%d+)@(%d+)!", interpretMsg);
 }
