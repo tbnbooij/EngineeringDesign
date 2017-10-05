@@ -15,12 +15,44 @@ void Doors::reset() {
 void Doors::move(char door, bool dir) {
     switch(door) {
         case 'l':
-            // ONLY the left door
-            leftCurr += (dir ? doorStep : -doorStep);
+            if(dir) {
+                if(leftCurr + doorStep > leftAngles[1]) {
+                    leftCurr = leftAngles[1];
+                    leftState = DOOR_STOP;
+                }
+                else {
+                    leftCurr += doorStep;
+                }
+            }
+            else {
+                if(leftCurr - doorStep < leftAngles[0]) {
+                    leftCurr = leftAngles[0];
+                    leftState = DOOR_STOP;
+                }
+                else {
+                    leftCurr -= doorStep;
+                }
+            }
             break;
         case 'r':
-            // ONLY the right door
-            rightCurr += (dir ? doorStep : -doorStep);
+            if(dir) {
+                if(rightCurr + doorStep > rightAngles[1]) {
+                    rightCurr = rightAngles[1];
+                    rightState = DOOR_STOP;
+                }
+                else {
+                    rightCurr += doorStep;
+                }
+            }
+            else {
+                if(rightCurr - doorStep < rightAngles[0]) {
+                    rightCurr = rightAngles[0];
+                    rightState = DOOR_STOP;
+                }
+                else {
+                    rightCurr -= doorStep;
+                }
+            }
             break;
     }
 

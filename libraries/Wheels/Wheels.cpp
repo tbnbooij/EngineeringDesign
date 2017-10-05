@@ -21,16 +21,33 @@ void Wheels::setSpeeds(uint8_t sl1, uint8_t sl2, uint8_t sr1, uint8_t sr2) {
     analogWrite(right2, sr2);
 }
 
-void Wheels::move(char direction, float speed) {
-    uint8_t currSpeed = (uint8_t) speed*255;
+void Wheels::move(char direction, int speed) {
+    float netSpeed = float(speed - 50)/50.0;
+    float currSpeed = 0.0;
+    uint8_t speedFront; 
+    uint8_t speedBack;
+
+    if(netSpeed > 0.0) {
+        speedFront = (uint8_t) 255.0*netSpeed;
+        speedBack = 0;
+    }
+    else if(netSpeed < 0.0) {
+        speedFront = 0;
+        speedBack = (uint8_t) 255.0*-1*netSpeed;
+    }
+    else {
+        speedFront = 0;
+        speedBack = 0;
+    }
+
     switch(direction) {
         case 's':
             // Move in straight line
-            setSpeeds(currSpeed, 0, currSpeed, 0);
+            setSpeeds(speedFront, speedBack, speedFront, speedBack);
             break;
         case 't':
             // Rotate
-            setSpeeds(-currSpeed, 0, 0, currSpeed);
+            setSpeeds(speedFront, speedBack, speedBack, speedFront);
             break;
         case 'x':
             // Stop
@@ -54,5 +71,5 @@ void Wheels::update() {
 }
 
 void Wheels::setSpeed(int s) {
-    wheelsSpeed = float(s)/100.0;
+    wheelsSpeed = s;
 }

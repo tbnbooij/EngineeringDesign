@@ -15,6 +15,8 @@ private:
     Servo rightServo;
     int leftReset = 90;
     int rightReset = 90;
+    int leftAngles[2] = {0,180};
+    int rightAngles[2] = {0,180};
     int leftCurr = 90;
     int rightCurr = 90;
     int doorStep = 2;

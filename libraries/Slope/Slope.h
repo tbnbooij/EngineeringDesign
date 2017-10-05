@@ -15,6 +15,7 @@ private:
     uint8_t slopeCurr;
     uint8_t slopeReset;
     uint8_t slopeStep = 2;
+    uint8_t slopeAngles[2] = {0,180};
 public:
     Slope(uint8_t pin);
     void move(bool dir);

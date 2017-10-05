@@ -15,14 +15,18 @@
 // Constants
 #define RECEIVE_DELAY 50
 #define COMM_BUFFER_SIZE 64
+#define UPDATE_DELAY 50
 
 // State parameter definitions
 #define LEFT_DOOR_IN 1
 #define RIGHT_DOOR_IN 2
 #define LEFT_DOOR_OUT 3
 #define RIGHT_DOOR_OUT 4
-#define BOTH_DOORS_IN 5
-#define BOTH_DOORS_OUT 6
+#define LEFT_DOOR_STOP 5
+#define RIGHT_DOOR_STOP 6
+#define BOTH_DOORS_IN 7
+#define BOTH_DOORS_OUT 8
+#define BOTH_DOORS_STOP 9
 
 // Initialization of libraries
 Doors doors(DOOR_L_PIN, DOOR_R_PIN);
@@ -31,102 +35,105 @@ Wheels wheels(WHEEL_L1_PIN, WHEEL_L2_PIN, WHEEL_R1_PIN, WHEEL_R2_PIN);
 
 // Update all actuators
 void update() {
-    doors.update();
-    slope.update();
-    wheels.update();
+  doors.update();
+  slope.update();
 }
 
 // Setup - Everything that has to run once
 void setup() {
-    Serial.begin(115200);
-    Serial.setTimeout(RECEIVE_DELAY);
+  Serial.begin(115200);
+  Serial.setTimeout(RECEIVE_DELAY);
 }
 
 // Loop - Everything that has to run continuously
 void loop() {
-    if(Serial.available() > 0) {
-        readMsg(Serial.readString());
-    }
+  if (Serial.available() > 0) {
+    readMsg(Serial.readString());
+  }
 
-    update();
+  update();
+  delay(UPDATE_DELAY);
 }
 
 // Interpret a message in the serial buffer
 void interpretMsg(const char * match, const unsigned int length, const MatchState & ms) {
-    char cap [10]; 
-    String header;
-    int param;
-    int speed;
-    
-    for (byte i = 0; i < ms.level; i++) {
-        ms.GetCapture(cap, i);
-        switch(i) {
-          case 0:
-            header = String(cap);
-            break;
-          case 1:
-            param = String(cap).toInt();
-            break;
-          case 2:
-            speed = String(cap).toInt();
-            break;
-        }
-    }
+  char cap [10];
+  char header;
+  int param;
+  int wSpeed;
 
-    switch(header) {
-      case "d":
-      case "door":
-        
-        int doorStates[2] = {DOOR_STOP, DOOR_STOP};
-
-        switch(param) {
-            case LEFT_DOOR_IN:
-                doorStates = {DOOR_IN, DOOR_STOP};
-                break;
-            case LEFT_DOOR_OUT:
-                doorStates = {DOOR_OUT, DOOR_STOP};
-                break;
-            case RIGHT_DOOR_IN:
-                doorStates = {DOOR_STOP, DOOR_IN};
-                break;
-            case RIGHT_DOOR_OUT:
-                doorStates = {DOOR_STOP, DOOR_OUT};
-                break;
-            case BOTH_DOORS_IN:
-                doorStates = {DOOR_IN, DOOR_IN};
-                break;
-            case BOTH_DOORS_OUT:
-                doorStates = {DOOR_OUT, DOOR_OUT};
-                break;
-        }
-
-        doors.leftState = doorStates[0];
-        doors.rightState = doorStates[1];
-
+  for (byte i = 0; i < ms.level; i++) {
+    ms.GetCapture(cap, i);
+    switch (i) {
+      case 0:
+        header = cap[0];
         break;
-      case "s":
-      case "slope":
-        if(param >= 0 && param <= 2) {
-            slope.slopeState = param;
-        }
+      case 1:
+        param = (int) atol(cap);
         break;
-      case "w":
-      case "wheels":
-        if(param >= 0 && param <= 2) {
-            wheels.wheelsDir = param;
-        }
-
-        if(speed >= -100 && speed <= 100) {
-            wheels.setSpeed(speed);
-        }
+      case 2:
+        wSpeed = (int) atol(cap);
         break;
     }
+  }
+
+  switch (header) {
+    case 'd':
+      switch (param) {
+        case LEFT_DOOR_IN:
+          doors.leftState = DOOR_IN;
+          break;
+        case LEFT_DOOR_OUT:
+          doors.leftState = DOOR_OUT; 
+          break;
+        case RIGHT_DOOR_IN:
+          doors.rightState = DOOR_IN;
+          break;
+        case RIGHT_DOOR_OUT:
+          doors.rightState = DOOR_IN;
+          break;
+        case LEFT_DOOR_STOP:
+          doors.leftState = DOOR_STOP;
+          break;
+        case RIGHT_DOOR_STOP:
+          doors.rightState = DOOR_STOP;
+        case BOTH_DOORS_IN:
+          doors.leftState = DOOR_IN;
+          doors.rightState = DOOR_IN;
+          break;
+        case BOTH_DOORS_OUT:
+          doors.leftState = DOOR_OUT;
+          doors.rightState = DOOR_OUT;
+          break;
+        case BOTH_DOORS_STOP:
+          doors.leftState = DOOR_STOP;
+          doors.rightState = DOOR_STOP;
+          break;
+      }
+      break;
+    case 's':
+      if (param >= 0 && param <= 2) {
+        slope.slopeState = param;
+      }
+      break;
+    case 'w':
+      if (param >= 0 && param <= 2) {
+        wheels.wheelsDir = param;
+      }
+
+      if (wSpeed >= 0 && wSpeed <= 100) {
+        wheels.setSpeed(wSpeed);
+        wheels.update();
+      }
+      break;
+  }
 }
 
 // Read the serial buffer
 void readMsg(String ser_buf) {
-    char buf[COMM_BUFFER_SIZE];
-    ser_buf.toCharArray(buf, ser_buf.length() + 1);
-    MatchState ms(buf);
-    unsigned long count = ms.GlobalMatch ("#(%a+)@(%d+)@(%d+)!", interpretMsg);
+  char buf[COMM_BUFFER_SIZE];
+  ser_buf.toCharArray(buf, ser_buf.length() + 1);
+  MatchState ms(buf);
+  unsigned long count = ms.GlobalMatch ("#(%a+)@(%d+)@(%d+)!", interpretMsg);
 }
+

@@ -15,11 +15,11 @@ private:
     uint8_t left2;
     uint8_t right1;
     uint8_t right2;
-    float wheelsSpeed = 0.0f;
+    int wheelsSpeed = 0;
     void setSpeeds(uint8_t sl1, uint8_t sl2, uint8_t sr1, uint8_t sr2);
 public:
     Wheels(uint8_t l1, uint8_t l2, uint8_t r1, uint8_t r2);
-    void move(char direction, float speed);
+    void move(char direction, int speed);
     void setSpeed(int speed);
     void update();
     byte wheelsDir = 0;

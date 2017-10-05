@@ -7,7 +7,25 @@ Slope::Slope(uint8_t pin) {
 }
 
 void Slope::move(bool dir) {
-    slopeServo.write(slopeCurr += (dir ? slopeStep : -slopeStep));
+    if(dir) {
+        if(slopeCurr + slopeStep > slopeAngles[1]) {
+            slopeCurr = slopeAngles[1];
+            slopeState = SLOPE_STOP;
+        }
+        else {
+            slopeCurr += slopeStep;
+        }
+    }
+    else {
+        if(slopeCurr - slopeStep < slopeAngles[0]) {
+            slopeCurr = slopeAngles[0];
+            slopeState = SLOPE_STOP;
+        }
+        else {
+            slopeCurr -= slopeStep;
+        }
+    }
+    slopeServo.write(slopeCurr);
 }
 
 void Slope::reset() {
