@@ -17,15 +17,12 @@ class MsgGen {
     private final static int SLOPE_UP = 1;
     private final static int SLOPE_DOWN = 2;
 
-    // Wheels message codes
-    private final static int DIR_STOP = 0;
-    private final static int DIR_FORWARD = 1;
-    private final static int DIR_TURN = 2;
-
     // Body codes
     private final static String DOOR_BODY = "d";
     private final static String SLOPE_BODY = "s";
     private final static String WHEELS_BODY = "w";
+    private final static String LED_BODY = "l";
+    private final static String GIMBAL_BODY = "g";
 
     // "API" codes
     // Doors
@@ -42,12 +39,12 @@ class MsgGen {
     public static final int S_DOWN = 1;
     public static final int S_STOP = 2;
 
-    // Wheels
-    public static final int W_FORWARD = 0;
-    public static final int W_BACKWARD = 1;
-    public static final int W_LEFT = 2;
-    public static final int W_RIGHT = 3;
-    public static final int W_STOP = 4;
+    // Gimbal
+    public static final int G_STOP = 0;
+    public static final int G_LEFT = 2;
+    public static final int G_RIGHT = 3;
+    public static final int G_UP = 4;
+    public static final int G_DOWN = 5;
 
 
     private static String createMsg(String body, int code, int speed) {
@@ -119,40 +116,15 @@ class MsgGen {
         return createMsg(SLOPE_BODY, instruction, 0);
     }
 
-    public static String wheels(int direction, double speed) {
-        int dir = -1;
-        int velocity = -1;
-
-        switch (direction) {
-            case W_FORWARD:
-                dir = DIR_FORWARD;
-                velocity = 50 + (int) round(50.0*speed);
-                break;
-            case W_BACKWARD:
-                dir = DIR_FORWARD;
-                velocity = 50 - (int) round(50.0*speed);
-                break;
-            case W_LEFT:
-                dir = DIR_TURN;
-                velocity = 50 + (int) round(50.0*speed);
-                break;
-            case W_RIGHT:
-                dir = DIR_TURN;
-                velocity = 50 - (int) round(50.0*speed);
-                break;
-            case W_STOP:
-                dir = DIR_STOP;
-                velocity = 50;
-        }
-        return createMsg(WHEELS_BODY, dir, velocity);
+    public static String wheels(double verticalSpeed, double horizontalSpeed) {
+        return createMsg(WHEELS_BODY, 50 + (int) round(50.0*verticalSpeed), 50 + (int) round(50.0*horizontalSpeed));
     }
 
-    public static String wheels(int direction) {
-        if(direction == W_STOP) {
-            return wheels(W_STOP, 0.0);
-        }
-        else {
-            throw new IllegalArgumentException("Function called without second parameter; please enter a speed. (double, 0.0 to 1.0)");
-        }
+    public static String led() {
+        return createMsg(LED_BODY, 0, 0);
+    }
+
+    public static String gimbal(int state) {
+        return createMsg(GIMBAL_BODY, state, 0);
     }
 }
