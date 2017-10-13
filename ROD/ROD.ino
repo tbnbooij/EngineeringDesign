@@ -1,16 +1,22 @@
 #include <Doors.h>
 #include <Slope.h>
 #include <Wheels.h>
+#include <Gimbal.h>
 #include <Regexp.h>
 
-// PWM Pin definitions (pre-processor)
+// Pin definitions (pre-processor)
 #define DOOR_L_PIN 1
-#define DOOR_R_PIN 2
-#define SLOPE_PIN 3
-#define WHEEL_L1_PIN 4
-#define WHEEL_L2_PIN 5
-#define WHEEL_R1_PIN 6
+#define DOOR_R_PIN 9
+#define SLOPE_PIN 8
+#define WHEEL_L_ENABLE 192
+#define WHEEL_R_ENABLE 324
+#define WHEEL_L1_PIN 5
+#define WHEEL_L2_PIN 1
+#define WHEEL_R1_PIN 3
 #define WHEEL_R2_PIN 7
+#define INTERNAL_LED_PIN 13
+#define GIMBAL_X_PIN 10
+#define GIMBAL_Y_PIN 11
 
 // Constants
 #define RECEIVE_DELAY 50
@@ -31,18 +37,23 @@
 // Initialization of libraries
 Doors doors(DOOR_L_PIN, DOOR_R_PIN);
 Slope slope(SLOPE_PIN);
-Wheels wheels(WHEEL_L1_PIN, WHEEL_L2_PIN, WHEEL_R1_PIN, WHEEL_R2_PIN);
+Wheels wheels(WHEEL_L1_PIN, WHEEL_L2_PIN, WHEEL_R1_PIN, WHEEL_R2_PIN, WHEEL_L_ENABLE, WHEEL_R_ENABLE);
+Gimbal gimbal(GIMBAL_X_PIN, GIMBAL_Y_PIN);
+
+bool LED_ON = false;
 
 // Update all actuators
 void update() {
   doors.update();
   slope.update();
+  gimbal.update();
 }
 
 // Setup - Everything that has to run once
 void setup() {
   Serial.begin(115200);
   Serial.setTimeout(RECEIVE_DELAY);
+  pinMode(INTERNAL_LED_PIN, OUTPUT);
 }
 
 // Loop - Everything that has to run continuously
@@ -57,6 +68,7 @@ void loop() {
 
 // Interpret a message in the serial buffer
 void interpretMsg(const char * match, const unsigned int length, const MatchState & ms) {
+  Serial.println("I'm alive");
   char cap [10];
   char header;
   int param;
@@ -117,15 +129,18 @@ void interpretMsg(const char * match, const unsigned int length, const MatchStat
       }
       break;
     case 'w':
-      if (param >= 0 && param <= 2) {
-        wheels.wheelsDir = param;
-      }
-
-      if (wSpeed >= 0 && wSpeed <= 100) {
-        wheels.setSpeed(wSpeed);
-        wheels.update();
+      if (param >= 0 && param <= 100 && speed >= 0 && speed <= 100) {
+        wheels.update(param, speed);
       }
       break;
+    case 'l':
+      digitalWrite(INTERNAL_LED_PIN, (LED_ON ? HIGH : LOW));
+      LED_ON = !LED_ON;
+      break;
+    case 'g':
+      if(param >= 0 && param <= 4) {
+        gimbal.gimbalState = param;
+      }
   }
 }
 

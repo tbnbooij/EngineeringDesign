@@ -42,28 +42,37 @@ MsgGen.slope(MsgGen.S_UP);
 Controlling the wheels in C++ is hard enough as-is, which is why I have tried to simplify their control as much as possible.
 The **.wheels()** method generates messages for changing the wheel motion. It expects 2 parameters:
 
-1. The direction in which you want the ROD to move
-    * MsgGen.W_FORWARD
-    * MsgGen.W_BACKWARD
-    * MsgGen.W_LEFT
-    * MsgGen.W_RIGHT
-    * MsgGen.W_STOP
-2. The speed at which you want the ROD to move
-    * A **double** between 0.0 and 1.0
-    * This parameter **may be omitted** if you pass *MsgGen.W_STOP* as the direction argument.
+1. The vertical velocity (double from 0.0 to 1.0)
+2. The horizontal velocity (double from 0.0 to 1.0)
 
 **Example**
 ```java
-MsgGen.wheels(MsgGen.W_FORWARD, 1.0);
-MsgGen.wheels(MsgGen.W_STOP);
+MsgGen.wheels(0.5, 0.6);
 ```
 
+#### LED
+The internal LED can be turned on with the message created by the **.led()** method.
+
+**Example**
+```java
+MsgGen.led();
 ```
-<sidenote>
-I have explicitly chosen to store all the aforementioned values (W_IN, D_LEFT, etc.) as final static integers instead of enums. 
-These are far more memory-friendly than enums on Android platforms.
-</sidenote>
+
+#### Gimbal
+The camera gimbal can be controlled with the **.gimbal()** method which has one argument: the desired state of the gimbal. The gimbal has 5 states:
+
+1. MsgGen.G_STOP
+2. MsgGen.G_LEFT
+3. MsgGen.G_RIGHT
+4. MsgGen.G_UP
+5. MsgGen.G_DOWN
+
+**Example**
+```java
+MsgGen.gimbal(MsgGen.G_LEFT);
 ```
+
+
 
 
 
