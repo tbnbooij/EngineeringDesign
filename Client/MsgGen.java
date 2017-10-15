@@ -1,6 +1,10 @@
 import static java.lang.Math.round;
 
-class MsgGen {
+public class MsgGen {
+    private MsgGen(){
+        throw new IllegalAccessError("This class can't be instantiated");
+    }
+    
     // Door message codes
     private final static int LEFT_DOOR_IN = 1;
     private final static int RIGHT_DOOR_IN = 2;
@@ -119,9 +123,9 @@ class MsgGen {
     public static String wheels(double verticalSpeed, double horizontalSpeed) {
         return createMsg(WHEELS_BODY, 50 + (int) round(50.0*verticalSpeed), 50 + (int) round(50.0*horizontalSpeed));
     }
-
-    public static String led() {
-        return createMsg(LED_BODY, 0, 0);
+    
+    public static String led(boolean status) {
+        return createMsg(LED_BODY, status ? 1 : 0, 0);
     }
 
     public static String gimbal(int state) {
