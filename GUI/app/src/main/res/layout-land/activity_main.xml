@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="engineering.design.rodofsteel.MainActivity">
+
+    <WebView
+        android:id="@+id/webView"
+        android:layout_width="0dp"
+        android:layout_height="214dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <io.github.controlwear.virtual.joystick.android.JoystickView
+        xmlns:custom="http://schemas.android.com/apk/res-auto"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        custom:JV_buttonColor="@color/colorAccent"
+        custom:JV_buttonSizeRatio="15%"
+        custom:JV_borderColor="@color/colorPrimary"
+        custom:JV_backgroundColor="@color/colorPrimaryDark"
+        custom:JV_borderWidth="4dp"
+        custom:JV_fixedCenter="false"
+        android:id="@+id/joystickView"
+        custom:layout_constraintEnd_toEndOf="parent"
+        custom:layout_constraintStart_toStartOf="parent"
+        android:layout_marginStart="64dp"
+        android:layout_marginEnd="64dp"
+        custom:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginBottom="0dp"
+        custom:layout_constraintHorizontal_bias="0.5" />
+
+</android.support.constraint.ConstraintLayout>
