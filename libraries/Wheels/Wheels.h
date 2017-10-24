@@ -3,6 +3,9 @@
 
 #include "Arduino.h"
 
+#define VERT_OFFSET 20
+#define HORZ_OFFSET 15
+
 class Wheels
 {
 private:
@@ -14,10 +17,11 @@ private:
     uint8_t rightEn;
     int horzSpeed = 0;
     int vertSpeed = 0;
-    void setSpeeds(uint8_t sl1, uint8_t sl2, uint8_t sr1, uint8_t sr2);
+    void setSpeeds(bool dir, uint8_t sel, uint8_t ser);
+    int mapSpeed(int speed);
 public:
     Wheels(uint8_t l1, uint8_t l2, uint8_t r1, uint8_t r2, uint8_t leften, uint8_t righten);
-    void update(uint8_t vert, uint8_t horz);
+    void update(int vert, int horz);
 };
 
 #endif

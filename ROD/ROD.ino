@@ -5,21 +5,21 @@
 #include <Regexp.h>
 
 // Pin definitions (pre-processor)
-#define DOOR_L_PIN 1
-#define DOOR_R_PIN 9
-#define SLOPE_PIN 8
-#define WHEEL_L_ENABLE 192
-#define WHEEL_R_ENABLE 324
-#define WHEEL_L1_PIN 5
-#define WHEEL_L2_PIN 1
-#define WHEEL_R1_PIN 3
-#define WHEEL_R2_PIN 7
+#define DOOR_L_PIN 25
+#define DOOR_R_PIN 1
+#define SLOPE_PIN 0
+#define WHEEL_L_ENABLE 6
+#define WHEEL_R_ENABLE 5
+#define WHEEL_L1_PIN 8
+#define WHEEL_L2_PIN 7
+#define WHEEL_R1_PIN 2
+#define WHEEL_R2_PIN 4
 #define INTERNAL_LED_PIN 13
 #define GIMBAL_X_PIN 10
 #define GIMBAL_Y_PIN 11
 
 // Constants
-#define RECEIVE_DELAY 50
+#define RECEIVE_DELAY 200
 #define COMM_BUFFER_SIZE 64
 #define UPDATE_DELAY 50
 
@@ -40,8 +40,6 @@ Slope slope(SLOPE_PIN);
 Wheels wheels(WHEEL_L1_PIN, WHEEL_L2_PIN, WHEEL_R1_PIN, WHEEL_R2_PIN, WHEEL_L_ENABLE, WHEEL_R_ENABLE);
 Gimbal gimbal(GIMBAL_X_PIN, GIMBAL_Y_PIN);
 
-bool LED_ON = false;
-
 // Update all actuators
 void update() {
   doors.update();
@@ -51,24 +49,23 @@ void update() {
 
 // Setup - Everything that has to run once
 void setup() {
-  Serial.begin(115200);
-  Serial.setTimeout(RECEIVE_DELAY);
+  Serial1.begin(115200);
+  Serial1.setTimeout(RECEIVE_DELAY);
   pinMode(INTERNAL_LED_PIN, OUTPUT);
 }
 
 // Loop - Everything that has to run continuously
 void loop() {
-  if (Serial.available() > 0) {
-    readMsg(Serial.readString());
+  if (Serial1.available() > 0) {
+    readMsg(Serial1.readString());
   }
 
   update();
   delay(UPDATE_DELAY);
 }
 
-// Interpret a message in the serial buffer
+// Interpret a message in the Serial1 buffer
 void interpretMsg(const char * match, const unsigned int length, const MatchState & ms) {
-  Serial.println("I'm alive");
   char cap [10];
   char header;
   int param;
@@ -94,57 +91,78 @@ void interpretMsg(const char * match, const unsigned int length, const MatchStat
       switch (param) {
         case LEFT_DOOR_IN:
           doors.leftState = DOOR_IN;
+          heartbeat();
           break;
         case LEFT_DOOR_OUT:
           doors.leftState = DOOR_OUT; 
+          heartbeat();
           break;
         case RIGHT_DOOR_IN:
           doors.rightState = DOOR_IN;
+          heartbeat();
           break;
         case RIGHT_DOOR_OUT:
           doors.rightState = DOOR_IN;
+          heartbeat();
           break;
         case LEFT_DOOR_STOP:
           doors.leftState = DOOR_STOP;
+          heartbeat();
           break;
         case RIGHT_DOOR_STOP:
           doors.rightState = DOOR_STOP;
+          heartbeat();
         case BOTH_DOORS_IN:
           doors.leftState = DOOR_IN;
           doors.rightState = DOOR_IN;
+          heartbeat();
           break;
         case BOTH_DOORS_OUT:
           doors.leftState = DOOR_OUT;
           doors.rightState = DOOR_OUT;
+          heartbeat();
           break;
         case BOTH_DOORS_STOP:
           doors.leftState = DOOR_STOP;
           doors.rightState = DOOR_STOP;
+          heartbeat();
           break;
       }
       break;
     case 's':
       if (param >= 0 && param <= 2) {
         slope.slopeState = param;
+        heartbeat();
       }
       break;
     case 'w':
-      if (param >= 0 && param <= 100 && speed >= 0 && speed <= 100) {
-        wheels.update(param, speed);
+      if (param >= 0 && param <= 100 && wSpeed >= 0 && wSpeed <= 100) {
+        wheels.update(param, wSpeed);
+        heartbeat();
       }
       break;
     case 'l':
-      digitalWrite(INTERNAL_LED_PIN, (LED_ON ? HIGH : LOW));
-      LED_ON = !LED_ON;
+      switch (param)
+      {
+        case 0:
+          digitalWrite(INTERNAL_LED_PIN, LOW);
+          heartbeat();
+          break;
+        case 1:
+          digitalWrite(INTERNAL_LED_PIN, HIGH);
+          heartbeat();
+          break;
+      }
       break;
     case 'g':
       if(param >= 0 && param <= 4) {
         gimbal.gimbalState = param;
+        heartbeat();
       }
   }
 }
 
-// Read the serial buffer
+// Read the Serial1 buffer
 void readMsg(String ser_buf) {
   char buf[COMM_BUFFER_SIZE];
   ser_buf.toCharArray(buf, ser_buf.length() + 1);
@@ -152,3 +170,7 @@ void readMsg(String ser_buf) {
   unsigned long count = ms.GlobalMatch ("#(%a+)@(%d+)@(%d+)!", interpretMsg);
 }
 
+// Heartbeat response
+void heartbeat() {
+  Serial1.println('_');
+}

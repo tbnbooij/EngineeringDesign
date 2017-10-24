@@ -18,64 +18,43 @@ Wheels::Wheels(uint8_t l1, uint8_t l2, uint8_t r1, uint8_t r2, uint8_t leften, u
     pinMode(rightEn, OUTPUT);
 }
 
-void Wheels::setSpeeds(uint8_t sl1, uint8_t sl2, uint8_t sr1, uint8_t sr2, uint8_t sel, uint8_t ser) {
-    digitalWrite(left1, sl1);
-    digitalWrite(left2, sl2);
+void Wheels::setSpeeds(bool dir, uint8_t sel, uint8_t ser) {
+    digitalWrite(left1, (dir ? HIGH : LOW));
+    digitalWrite(left2, (dir ? LOW : HIGH));
     analogWrite(leftEn, sel);
-    digitalWrite(right1, sr1);
-    digitalWrite(right2, sr2);
+    digitalWrite(right1, (dir ? HIGH : LOW));
+    digitalWrite(right2, (dir ? LOW : HIGH));
     analogWrite(rightEn, ser);
 }
 
-void Wheels::update(uint8_t vert, uint8_t horz) {
-    float vertSpeed = float(vert - 50)/50.0;
-    float horzSpeed = float(horz - 50)/50.0;
-
-    byte vertState = (vertSpeed == 0.0 ? 0 : (vertSpeed > 0.0 ? 1 : -1));
-    byte horzState = (horzState == 0.0 ? 0 : (horzSpeed > 0.0 ? 1 : -1));
-
-    switch(vertState)
+int Wheels::mapSpeed(int speed) {
+    if (speed > 50)
     {
-        case 0:
-            // Movements with no vertical velocity
-            // Anything horizontal is then impossible
-            setSpeeds(LOW, LOW, LOW, LOW, 0, 0);
-            break;
-        case -1:
-            // Movements with negative vertical velocity
-            switch(horzState)
-            {
-                case -1:
-                    // Move BACKWARD and move to the LEFT
-                    setSpeeds(LOW, HIGH, LOW, HIGH, (int) -255.0*vertSpeed + 255.0*horzSpeed, (int) -255.0*vertSpeed);
-                    break;
-                case 0:
-                    // Move BACKWARD in a straight line
-                    setSpeeds(LOW, HIGH, LOW, HIGH, (int) -255.0*vertSpeed, (int) -255.0*vertSpeed);
-                    break;
-                case 1:
-                     // Move BACKWARD and move to the RIGHT
-                     setSpeeds(LOW, HIGH, LOW, HIGH, (int) -255.0*vertSpeed, (int) -255.0*vertSpeed - 255.0*horzSpeed);
-                    break;
-            }
-            break;
-        case 1:
-            // Movements with positive vertical velocity
-            switch(horzState)
-            {
-                case -1:
-                    // Move to the LEFT and FORWARD
-                    setSpeeds(LOW, HIGH, HIGH, LOW, (int) 255.0*vertSpeed + 255.0*horzSpeed, (int) 255.0*vertSpeed);
-                    break;
-                case 0:
-                    // Move FORWARD in a straight line
-                    setSpeeds(HIGH, LOW, HIGH, LOW, (int) 255.0*vertSpeed, (int) 255.0*vertSpeed);
-                    break;
-                case 1:
-                    // Move to the RIGHT and FORWARD
-                    setSpeeds(HIGH, LOW, LOW, HIGH, (int) 255.0*vertSpeed, (int) 255.0*vertSpeed - 255.0*horzSpeed);
-                    break;
-            }
+        return (int) (((float) map(speed, 50, 100, 50 + VERT_OFFSET, 100))/100.0 * 255.0);
+    }
+    
+    if (speed < 50)
+    {
+        return (int) (((float) map(speed, 0, 50, 0, 50 - VERT_OFFSET))/100.0 * 255.0);
+    }
+
+    return 0;
+}
+
+void Wheels::update(int vert, int horz) {
+    float horzFactor = 1.0 - ((float) abs(50 - horz))/50.0;
+
+    if (horz > 50 + HORZ_OFFSET)
+    {
+        setSpeeds(vert >= 50, mapSpeed(vert), (int) mapSpeed(vert) * horzFactor);
+    }
+    else if (horz < 50 - HORZ_OFFSET)
+    {
+        setSpeeds(vert >= 50, (int) mapSpeed(vert) * horzFactor, mapSpeed(vert));
+    }
+    else
+    {
+        setSpeeds(vert >= 50, mapSpeed(vert), mapSpeed(vert));
     }
 
 }
