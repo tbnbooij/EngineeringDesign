@@ -19,7 +19,7 @@
 #define GIMBAL_Y_PIN 11
 
 // Constants
-#define RECEIVE_DELAY 200
+#define RECEIVE_DELAY 100
 #define COMM_BUFFER_SIZE 64
 #define UPDATE_DELAY 50
 
@@ -40,6 +40,9 @@ Slope slope(SLOPE_PIN);
 Wheels wheels(WHEEL_L1_PIN, WHEEL_L2_PIN, WHEEL_R1_PIN, WHEEL_R2_PIN, WHEEL_L_ENABLE, WHEEL_R_ENABLE);
 Gimbal gimbal(GIMBAL_X_PIN, GIMBAL_Y_PIN);
 
+const char hearthbeat = '_';
+const boolean confirm_command = false;
+
 // Update all actuators
 void update() {
   doors.update();
@@ -52,11 +55,19 @@ void setup() {
   Serial1.begin(115200);
   Serial1.setTimeout(RECEIVE_DELAY);
   pinMode(INTERNAL_LED_PIN, OUTPUT);
+
+  while(Serial1.available() > 0) {
+    Serial1.read();
+
+    if (confirm_command){
+      sendHeartbeat();  
+    }
+  }
 }
 
 // Loop - Everything that has to run continuously
 void loop() {
-  if (Serial1.available() > 0) {
+  while (Serial1.available() > 0) {
     readMsg(Serial1.readString());
   }
 
@@ -91,54 +102,43 @@ void interpretMsg(const char * match, const unsigned int length, const MatchStat
       switch (param) {
         case LEFT_DOOR_IN:
           doors.leftState = DOOR_IN;
-          heartbeat();
           break;
         case LEFT_DOOR_OUT:
           doors.leftState = DOOR_OUT; 
-          heartbeat();
           break;
         case RIGHT_DOOR_IN:
           doors.rightState = DOOR_IN;
-          heartbeat();
           break;
         case RIGHT_DOOR_OUT:
           doors.rightState = DOOR_IN;
-          heartbeat();
           break;
         case LEFT_DOOR_STOP:
           doors.leftState = DOOR_STOP;
-          heartbeat();
           break;
         case RIGHT_DOOR_STOP:
           doors.rightState = DOOR_STOP;
-          heartbeat();
         case BOTH_DOORS_IN:
           doors.leftState = DOOR_IN;
           doors.rightState = DOOR_IN;
-          heartbeat();
           break;
         case BOTH_DOORS_OUT:
           doors.leftState = DOOR_OUT;
           doors.rightState = DOOR_OUT;
-          heartbeat();
           break;
         case BOTH_DOORS_STOP:
           doors.leftState = DOOR_STOP;
           doors.rightState = DOOR_STOP;
-          heartbeat();
           break;
       }
       break;
     case 's':
       if (param >= 0 && param <= 2) {
         slope.slopeState = param;
-        heartbeat();
       }
       break;
     case 'w':
       if (param >= 0 && param <= 100 && wSpeed >= 0 && wSpeed <= 100) {
         wheels.update(param, wSpeed);
-        heartbeat();
       }
       break;
     case 'l':
@@ -146,31 +146,37 @@ void interpretMsg(const char * match, const unsigned int length, const MatchStat
       {
         case 0:
           digitalWrite(INTERNAL_LED_PIN, LOW);
-          heartbeat();
           break;
         case 1:
           digitalWrite(INTERNAL_LED_PIN, HIGH);
-          heartbeat();
           break;
       }
       break;
     case 'g':
       if(param >= 0 && param <= 4) {
         gimbal.gimbalState = param;
-        heartbeat();
       }
   }
 }
 
+void sendHeartbeat(){
+    Serial1.println(heartbeat);
+    Serial1.flush();
+}
+
+
 // Read the Serial1 buffer
 void readMsg(String ser_buf) {
+  ser_buf.trim();
+  if (ser_buf.length() == 1
+        && ser_buf[0] == heartbeat){
+    sendHeartbeat();
+    return;
+  }
+  
   char buf[COMM_BUFFER_SIZE];
-  ser_buf.toCharArray(buf, ser_buf.length() + 1);
+  ser_buf.toCharArray(buf, COMM_BUFFER_SIZE);
   MatchState ms(buf);
   unsigned long count = ms.GlobalMatch ("#(%a+)@(%d+)@(%d+)!", interpretMsg);
 }
 
-// Heartbeat response
-void heartbeat() {
-  Serial1.println('_');
-}

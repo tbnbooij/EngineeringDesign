@@ -1,18 +1,29 @@
-#include <Regexp.h>
+ #include <Regexp.h>
 
 #define COMM_BUFFER_SIZE 64
 
+const char heartbeat = '_';
+const boolean confirm_command = false;
+
 // Setup - Everything that has to run once
 void setup() {
-  Serial.begin(115200);
-  Serial.setTimeout(50);
+  Serial1.begin(115200);
+  Serial1.setTimeout(100);
   pinMode(13, OUTPUT);
+
+  while(Serial1.available() > 0) {
+    Serial1.read();
+  }
 }
 
 // Loop - Everything that has to run continuously
 void loop() {
-  if (Serial.available() > 0) {
-    readMsg(Serial.readString());
+  
+  while (Serial1.available() > 0) {
+    readMsg(Serial1.readString());
+    if (confirm_command){
+      sendHeartbeat();  
+    }
   }
 }
 
@@ -46,21 +57,33 @@ void interpretMsg(const char * match, const unsigned int length, const MatchStat
       switch(param)
       {
         case 0:
-          Serial.println("Turned LED OFF");
           break;
         case 1:
-          Serial.println("Turned LED ON");
           break;
       }
       break;
   }
 }
 
+void sendHeartbeat(){
+    Serial1.println(heartbeat);
+    Serial1.flush();
+}
+
 // Read the serial buffer
 void readMsg(String ser_buf) {
+  ser_buf.trim();
+  if (ser_buf.length() == 1
+        && ser_buf[0] == heartbeat){
+    sendHeartbeat();
+    return;
+  }
+  
   char buf[COMM_BUFFER_SIZE];
-  ser_buf.toCharArray(buf, ser_buf.length() + 1);
+  ser_buf.toCharArray(buf, COMM_BUFFER_SIZE);
+ 
   MatchState ms(buf);
   unsigned long count = ms.GlobalMatch ("#(%a)@(%d+)@(%d+)!", interpretMsg);
+  
 }
 
