@@ -4,7 +4,7 @@ public class MsgGen {
     private MsgGen(){
         throw new IllegalAccessError("This class can't be instantiated");
     }
-    
+
     // Door message codes
     private final static int LEFT_DOOR_IN = 1;
     private final static int RIGHT_DOOR_IN = 2;
@@ -12,12 +12,12 @@ public class MsgGen {
     private final static int RIGHT_DOOR_OUT = 4;
     private final static int LEFT_DOOR_STOP = 5;
     private final static int RIGHT_DOOR_STOP = 6;
-    private final static int BOTH_DOORS_IN = 7;
-    private final static int BOTH_DOORS_OUT = 8;
-    private final static int BOTH_DOORS_STOP = 9;
+    @Deprecated private final static int BOTH_DOORS_IN = 7;
+    @Deprecated private final static int BOTH_DOORS_OUT = 8;
+    @Deprecated private final static int BOTH_DOORS_STOP = 9;
 
     // Slope message codes
-    private final static int SLOPE_STOP = 0;
+    @Deprecated private final static int SLOPE_STOP = 0;
     private final static int SLOPE_UP = 1;
     private final static int SLOPE_DOWN = 2;
 
@@ -32,23 +32,23 @@ public class MsgGen {
     // Doors
     public static final int D_LEFT = 0;
     public static final int D_RIGHT = 1;
-    public static final int D_BOTH = 2;
+    @Deprecated public static final int D_BOTH = 2;
 
     public static final int D_IN = 3;
     public static final int D_OUT = 4;
-    public static final int D_STOP = 5;
+    @Deprecated public static final int D_STOP = 5;
 
     // Slope
     public static final int S_UP = 0;
     public static final int S_DOWN = 1;
-    public static final int S_STOP = 2;
+    @Deprecated public static final int S_STOP = 2;
 
     // Gimbal
-    public static final int G_STOP = 0;
-    public static final int G_LEFT = 2;
-    public static final int G_RIGHT = 3;
-    public static final int G_UP = 4;
-    public static final int G_DOWN = 5;
+    @Deprecated public static final int G_STOP = 0;
+    public static final int G_LEFT = 1;
+    public static final int G_RIGHT = 2;
+    public static final int G_UP = 3;
+    public static final int G_DOWN = 4;
 
 
     private static String createMsg(String body, int code, int speed) {
@@ -123,7 +123,7 @@ public class MsgGen {
     public static String wheels(double verticalSpeed, double horizontalSpeed) {
         return createMsg(WHEELS_BODY, 50 + (int) round(50.0*verticalSpeed), 50 + (int) round(50.0*horizontalSpeed));
     }
-    
+
     public static String led(boolean status) {
         return createMsg(LED_BODY, status ? 1 : 0, 0);
     }
